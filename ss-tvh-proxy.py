@@ -8,32 +8,29 @@ VALID_SITES = ['viewms', 'view247', 'viewss', 'viewmmasr', 'viewstvn']
 VALID_SERVERS = ['dAP', 'deu', 'deu.nl', 'deu.uk', 'deu.uk1', 'deu.uk2', 'deu.nl1', 'deu.nl2', 'deu.nl3',
                  'dna', 'dnae', 'dnaw', 'dnae1', 'dnae2', 'dnae3', 'dnae4', 'dnaw1', 'dnaw2']
 
-
 app = Flask(__name__)
-
-username = None
-password = None
 
 
 @app.route('/channels/<channel_number>')
 def get_channel(channel_number):
-    site = request.args.get('site')
-    server = request.args.get('server')
-    quality = request.args.get('quality')
+	site = request.args.get('site')
+	server = request.args.get('server')
+	quality = request.args.get('quality')
 
-    if site is None:
-        return 'You must specify a site.'
-    if server is None:
-        return 'You must specify a server.'
-    if quality is None:
-        quality = 1
+	if site is None:
+		return 'You must specify a site.'
+	if server is None:
+		return 'You must specify a server.'
+	if quality is None:
+		quality = 1
 
-    channel_url = build_url(channel_number, quality, site, server)
-    return redirect(channel_url)
+	channel_url = build_url(channel_number, quality, site, server)
+	return redirect(channel_url)
+
 
 @app.route('/servers')
 def list_servers():
-    servers = """# Servers               
+	servers = """# Servers               
 #
 # Asia/Oceania        Europe                     North America
 # 
@@ -46,37 +43,40 @@ def list_servers():
 #                     'deu.nl2' -> NL2 (i3d)    'dnae4' -> US/CA East 4 (TOR)
 #                     'deu.nl3' -> NL3 (Ams)    'dnaw1' -> US/CA West 1 (PHZ)
 #                                               'dnaw2' -> US/CA West 2 (SJ)"""
-    return servers
+	return servers
+
 
 @app.route('/sites')
 def list_sites():
-    sites = """# Services
+	sites = """# Services
 #
 # MyStreams.tv: service = 'viewms'
 # Live247.tv: service = 'view247'
 # StarStreams: service = 'viewss'
 # MMA SR+:  service = 'viewmmasr'
 # StreamTVnow = 'viewstvn'"""
-    return sites
+	return sites
+
 
 def build_url(channel_number, quality, site, server):
-    auth_sign = AuthSign(site, username, password)
-    auth_sign.fetch_hash()
+	auth_sign.site = site
+	auth_sign.fetch_hash()
 
-    url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/' \
-          f'playlist.m3u8?wmsAuthSign={auth_sign.hash}'
-    app.logger.debug(f'Built {url}')
-    return url
+	url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/playlist.m3u8?wmsAuthSign={auth_sign.hash}'
+	app.logger.debug(f'Built {url}')
+	return url
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('username', help='Username to authenticate with')
-    parser.add_argument('-p', '--password', help='Password to authenticate with')
-    args = parser.parse_args()
+	parser = argparse.ArgumentParser()
+	parser.add_argument('username', help='Username to authenticate with')
+	parser.add_argument('-p', '--password', help='Password to authenticate with')
+	args = parser.parse_args()
 
-    if args.username is not None and args.password is not None:
-        username = args.username
-        password = args.password
+	if args.username is not None and args.password is not None:
+		username = args.username
+		password = args.password
 
-        app.run()
+		auth_sign = AuthSign(username, password)
+
+		app.run()
