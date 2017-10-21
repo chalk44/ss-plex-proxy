@@ -15,7 +15,7 @@ username = None
 password = None
 
 
-@app.route('/channels/<int:channel_number>')
+@app.route('/channels/<channel_number>')
 def get_channel(channel_number):
     site = request.args.get('site')
     server = request.args.get('server')
@@ -63,7 +63,7 @@ def build_url(channel_number, quality, site, server):
     auth_sign = AuthSign(site, username, password)
     auth_sign.fetch_hash()
 
-    url = f'https://{server}.smoothstreams.tv/{site}/ch{str(channel_number).zfill(2)}q{quality}.stream/' \
+    url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/' \
           f'playlist.m3u8?wmsAuthSign={auth_sign.hash}'
     app.logger.debug(f'Built {url}')
     return url
