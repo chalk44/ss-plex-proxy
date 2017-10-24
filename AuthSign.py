@@ -4,10 +4,10 @@ import urllib.request
 
 
 class AuthSign:
-	def __init__(self, username, password):
-		self.site = None
-		self.username = username
-		self.password = password
+	def __init__(self, site=None, auth=(None, None)):
+		self.site = site
+		self.username = auth[0]
+		self.password = auth[1]
 
 		self.expiration_date = None
 		self.hash = None
@@ -20,22 +20,27 @@ class AuthSign:
 	def fetch_hash(self):
 		now = datetime.datetime.now()
 
-		if self.hash is None or now > self.expiration_date:
-			print('Hash is either none or may be expired. Getting a new one...')
-			hash_url = f'{self.url}?username={self.username}&password={self.password}&site={self.site}'
-			response = urllib.request.urlopen(hash_url)
+		if self.username is not None and self.password is not None:
 
-			try:
-				as_json = json.loads(response.read())
+			if self.hash is None or now > self.expiration_date:
+				print('Hash is either none or may be expired. Getting a new one...')
+				hash_url = f'{self.url}?username={self.username}&password={self.password}&site={self.site}'
+				response = urllib.request.urlopen(hash_url)
 
-				if 'hash' in as_json:
-					self.hash = as_json['hash']
-					self.set_expiration_date(as_json['valid'])
+				try:
+					as_json = json.loads(response.read())
 
-			except Exception as e:
-				print('error!')
+					if 'hash' in as_json:
+						self.hash = as_json['hash']
+						self.set_expiration_date(as_json['valid'])
 
-		print(f'Returning hash {self.hash}')
+				except Exception as e:
+					print('error!')
+
+			print(f'Returning hash {self.hash}')
+
+		else:
+			raise ValueError('Username or password is not set.')
 
 	def set_expiration_date(self, minutes):
 		now = datetime.datetime.now()

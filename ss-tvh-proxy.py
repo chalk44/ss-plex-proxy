@@ -13,18 +13,15 @@ app = Flask(__name__)
 
 @app.route('/channels/<channel_number>')
 def get_channel(channel_number):
-	site = request.args.get('site')
 	server = request.args.get('server')
 	quality = request.args.get('quality')
 
-	if site is None:
-		return 'You must specify a site.'
 	if server is None:
 		return 'You must specify a server.'
 	if quality is None:
 		quality = 1
 
-	channel_url = build_url(channel_number, quality, site, server)
+	channel_url = build_url(channel_number, quality, server)
 	return redirect(channel_url)
 
 
@@ -58,8 +55,7 @@ def list_sites():
 	return sites
 
 
-def build_url(channel_number, quality, site, server):
-	auth_sign.site = site
+def build_url(channel_number, quality, server):
 	auth_sign.fetch_hash()
 
 	url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/playlist.m3u8?wmsAuthSign={auth_sign.hash}'
@@ -69,14 +65,16 @@ def build_url(channel_number, quality, site, server):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('username', help='Username to authenticate with')
-	parser.add_argument('-p', '--password', help='Password to authenticate with')
+	parser.add_argument('site', help='site to build links for')
+	parser.add_argument('-u', '--username', help='username to authenticate with')
+	parser.add_argument('-p', '--password', help='password to authenticate with')
 	args = parser.parse_args()
 
-	if args.username is not None and args.password is not None:
+	if None not in (args.site, args.username, args.password):
 		username = args.username
 		password = args.password
+		site = args.site
 
-		auth_sign = AuthSign(username, password)
+		auth_sign = AuthSign(site=site, auth=(username, password))
 
 		app.run()
