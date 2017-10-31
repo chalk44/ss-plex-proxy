@@ -1,8 +1,10 @@
 import argparse
+import urllib
 
-from flask import Flask, redirect, request
+from flask import Flask, redirect, request, Response
 
 from AuthSign import AuthSign
+from Guide import Guide
 
 VALID_SITES = ['viewms', 'view247', 'viewss', 'viewmmasr', 'viewstvn']
 VALID_SERVERS = ['dAP', 'deu', 'deu.nl', 'deu.uk', 'deu.uk1', 'deu.uk2', 'deu.nl1', 'deu.nl2', 'deu.nl3',
@@ -24,6 +26,25 @@ def get_channel(channel_number):
 	channel_url = build_url(channel_number, quality, server)
 	return redirect(channel_url)
 
+
+@app.route('/playlist')
+def get_playlist():
+	server = request.args.get('server')
+	quality = request.args.get('quality')
+
+	playlist_as_string = '#EXTM3U\n'
+	track_template = '#EXTINF:-1 tvg-name="{1}" tvg-id="{0}" tvh-chnum="{0}" tvg-logo="{2}",{1}\n'
+
+	g = Guide()
+	channels = g.channels
+
+	for c in channels:
+		playlist_as_string += track_template.format(c['number'],
+		                                            c['name'],
+		                                            c['icon'])
+
+		playlist_as_string += f'{request.url_root}channels/{c["number"]}?server={server}&quality={quality}\n'
+	return Response(playlist_as_string, mimetype='text/plain')
 
 @app.route('/servers')
 def list_servers():
@@ -58,8 +79,10 @@ def list_sites():
 def build_url(channel_number, quality, server):
 	auth_sign.fetch_hash()
 
-	url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/playlist.m3u8?wmsAuthSign={auth_sign.hash}'
-	app.logger.debug(f'Built {url}')
+	auth = {'wmsAuthSign': auth_sign.hash}
+	url = f'https://{server}.smoothstreams.tv/{site}/ch{channel_number.zfill(2)}q{quality}.stream/playlist.m3u8?'
+	url = url + urllib.parse.urlencode(auth)
+	app.logger.info(f'Built {url}')
 	return url
 
 
