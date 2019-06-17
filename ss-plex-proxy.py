@@ -1,8 +1,9 @@
 import argparse
 
 from flask import Flask, redirect, request, jsonify
-from pysmoothstreams import LIVE247, Feed, Server, Quality, Protocol
+from pysmoothstreams import Feed, Server, Quality, Protocol, Service
 from pysmoothstreams.auth import AuthSign
+from pysmoothstreams.exceptions import InvalidService
 from pysmoothstreams.guide import Guide
 
 app = Flask(__name__)
@@ -75,12 +76,22 @@ if __name__ == '__main__':
         password = args.password
         service = args.service
 
+        if args.service == "live247":
+            service = Service.LIVE247
+        elif args.service == "starstreams":
+            service = Service.STARSTREAMS
+        elif args.service == "streamtvnow":
+            service = Service.STREAMTVNOW
+        elif args.service == "mmatv":
+            service = Service.MMATV
+        else:
+            raise InvalidService
+
         server = args.server
         quality = args.quality
 
 
-        # TODO: Make it work with other services
-        auth_sign = AuthSign(service=LIVE247, auth=(username, password))
+        auth_sign = AuthSign(service=service, auth=(username, password))
         guide = Guide(Feed.SMOOTHSTREAMS)
 
         app.run(host='0.0.0.0', port=5004)
