@@ -1,5 +1,3 @@
-import argparse
-
 from flask import Flask, redirect, request, jsonify
 from pysmoothstreams import Feed, Server, Quality, Protocol, Service
 from pysmoothstreams.auth import AuthSign
@@ -7,6 +5,8 @@ from pysmoothstreams.exceptions import InvalidService
 from pysmoothstreams.guide import Guide
 
 app = Flask(__name__)
+app.config.from_pyfile('ss-plex-proxy.default_settings')
+app.config.from_pyfile('ss-plex-proxy.custom_settings')
 
 
 @app.route('/channels/<int:channel_number>')
@@ -25,12 +25,12 @@ def list_servers():
 @app.route('/hdhomerun/discover.json')
 def discover():
     data = {
-        'FriendlyName': 'proxy',
+        'FriendlyName': 'ss-plex-proxy',
         'Manufacturer': 'Silicondust',
         'ModelNumber': 'HDTC-2US',
         'FirmwareName': 'hdhomeruntc_atsc',
         'TunerCount': 6,
-        'FirmwareVersion': '20150826',
+        'FirmwareVersion': '201906217',
         'DeviceID': 'xyz',
         'DeviceAuth': 'xyz',
         'BaseURL': request.url_root + 'hdhomerun',
@@ -62,36 +62,23 @@ def lineup_status():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('service', help='service to build links for')
+    if app.config['SERVICE'] == "live247":
+        service = Service.LIVE247
+    elif app.config['SERVICE'] == "starstreams":
+        service = Service.STARSTREAMS
+    elif app.config['SERVICE'] == "streamtvnow":
+        service = Service.STREAMTVNOW
+    elif app.config['SERVICE'] == "mmatv":
+        service = Service.MMATV
+    else:
+        raise InvalidService
 
-    parser.add_argument('-u', '--username', help='username to authenticate with')
-    parser.add_argument('-p', '--password', help='password to authenticate with')
-    parser.add_argument('-s', '--server', help='server to stream from')
-    parser.add_argument('-q', '--quality', help='desired quality')
-    args = parser.parse_args()
+    username = app.config['USERNAME']
+    password = app.config['PASSWORD']
+    server = app.config['SERVER']
+    quality = app.config['QUALITY']
 
-    if None not in (args.service, args.username, args.password):
-        username = args.username
-        password = args.password
-        service = args.service
+    auth_sign = AuthSign(service=service, auth=(username, password))
+    guide = Guide(Feed.SMOOTHSTREAMS)
 
-        if args.service == "live247":
-            service = Service.LIVE247
-        elif args.service == "starstreams":
-            service = Service.STARSTREAMS
-        elif args.service == "streamtvnow":
-            service = Service.STREAMTVNOW
-        elif args.service == "mmatv":
-            service = Service.MMATV
-        else:
-            raise InvalidService
-
-        server = args.server
-        quality = args.quality
-
-
-        auth_sign = AuthSign(service=service, auth=(username, password))
-        guide = Guide(Feed.SMOOTHSTREAMS)
-
-        app.run(host='0.0.0.0', port=5004)
+    app.run(host='0.0.0.0', port=5004)

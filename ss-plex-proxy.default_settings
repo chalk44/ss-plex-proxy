@@ -1,0 +1,9 @@
+DEBUG = False
+# Valid services: 'live247', 'starstreams', 'streamtvnow', 'mmatv'
+SERVICE = 'live247'
+USERNAME = ''
+PASSWORD = ''
+# See http://localhost:5004/servers for valid servers
+SERVER = 'NA_EAST_VA'
+# Valid qualities: 'HD', 'HQ', 'LQ'
+QUALITY = 'HD'
