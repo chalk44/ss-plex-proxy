@@ -66,10 +66,11 @@ def lineup_status():
 
 @app.route('/guide')
 def guide_data():
-	if use_altepg:
-		return altepg()
 
-	return Response(guide.epg_data, mimetype='application/json')
+	if guide.url == Feed.ALTEPG.value:
+		return altepg(guide.epg_data)
+
+	return Response(guide.epg_data, mimetype='text/xml')
 
 
 if __name__ == '__main__':
@@ -88,7 +89,6 @@ if __name__ == '__main__':
 	password = app.config['PASSWORD']
 	server = app.config['SERVER']
 	quality = app.config['QUALITY']
-	use_altepg = app.config['ALTEPG']
 
 	auth_sign = AuthSign(service=service, auth=(username, password))
 	guide = Guide()

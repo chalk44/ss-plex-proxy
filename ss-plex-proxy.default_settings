@@ -7,4 +7,3 @@ PASSWORD = ''
 SERVER = 'NA_EAST_VA'
 # Valid qualities: 'HD', 'HQ', 'LQ'
 QUALITY = 'HD'
-ALTEPG = True
