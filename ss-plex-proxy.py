@@ -68,7 +68,7 @@ def lineup_status():
 def guide_data():
 
 	if guide.url == Feed.ALTEPG.value:
-		return altepg(guide.epg_data)
+		return altepg(guide.epg_data.decode())
 
 	return Response(guide.epg_data, mimetype='text/xml')
 

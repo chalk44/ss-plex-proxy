@@ -25,6 +25,6 @@ def rewrite_channel_ids(epg_data):
 	mappings = get_channel_numbers_from_ids(epg_data)
 
 	for mapping in mappings:
-		epg_data = str(epg_data).replace(mapping['channel_id'], mapping['channel_number'])
+		epg_data = epg_data.replace(mapping['channel_id'], mapping['channel_number'])
 
 	return epg_data
