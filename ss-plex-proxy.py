@@ -1,7 +1,8 @@
+import xml.etree.ElementTree as ET
+
 from flask import Flask, redirect, request, jsonify, Response
 
-from altepg import altepg
-from pysmoothstreams import Feed, Server, Quality, Protocol, Service
+from pysmoothstreams import Server, Quality, Protocol, Service
 from pysmoothstreams.auth import AuthSign
 from pysmoothstreams.exceptions import InvalidService
 from pysmoothstreams.guide import Guide
@@ -14,8 +15,7 @@ app.config.from_pyfile('ss-plex-proxy.custom_settings')
 @app.route('/channels/<int:channel_number>')
 @app.route('/auto/v<int:channel_number>')
 def get_channel(channel_number):
-	url = \
-	guide.generate_streams(Server[server], Quality[quality], auth_sign, protocol=Protocol.MPEG)[channel_number - 1][
+	url = guide.generate_streams(Server[server], Quality[quality], auth_sign, protocol=Protocol.MPEG)[channel_number - 1][
 		'url']
 	return redirect(url)
 
@@ -63,14 +63,26 @@ def lineup_status():
 		'SourceList': ['Cable']
 	})
 
+# Used to add a 'lcn' subelement to channel elements as Plex does something weird where it concatenates the channel id
+#  and channel name to make the channel number. For fog/altepg this is needed for sane channel numbers.
+# https://forums.plex.tv/t/xmltv-parsing-channel-id-and-display-name/219305/20
+def add_lcn_element(xmltv):
+	channel_number = 1
+
+	tree = ET.fromstring(xmltv)
+	for element in tree.iter():
+		if element.tag == 'channel':
+			lcn = ET.SubElement(element, 'lcn')
+			lcn.text = str(channel_number)
+			channel_number += 1
+
+	return ET.tostring(tree)
+
 
 @app.route('/guide')
 def guide_data():
-
-	if guide.url == Feed.ALTEPG.value:
-		return altepg(guide.epg_data.decode())
-
-	return Response(guide.epg_data, mimetype='text/xml')
+	epg_data = add_lcn_element(guide.epg_data)
+	return Response(epg_data.decode(), mimetype='text/xml')
 
 
 if __name__ == '__main__':
