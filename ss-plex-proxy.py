@@ -47,7 +47,7 @@ def lineup():
 	channels = []
 
 	for stream in guide.channels:
-		channels.append({'GuideNumber': stream['number'],
+		channels.append({'GuideNumber': str(stream['number']),
 		                 'GuideName': stream['name'],
 		                 'url': request.url_root + "channels/" + str(stream['number'])})
 
