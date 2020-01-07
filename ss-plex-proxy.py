@@ -1,3 +1,4 @@
+import os
 import xml.etree.ElementTree as ET
 
 from flask import Flask, redirect, request, jsonify, Response
@@ -7,7 +8,7 @@ from pysmoothstreams.auth import AuthSign
 from pysmoothstreams.exceptions import InvalidService
 from pysmoothstreams.guide import Guide
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', static_folder='static')
 app.config.from_pyfile('ss-plex-proxy.default_settings')
 app.config.from_pyfile('ss-plex-proxy.custom_settings')
 
@@ -82,7 +83,21 @@ def add_lcn_element(xmltv):
 @app.route('/guide')
 def guide_data():
 	epg_data = add_lcn_element(guide.epg_data)
+	if app.config['NANOF_LOGOS']: epg_data = replace_logos(epg_data)
 	return Response(epg_data.decode(), mimetype='text/xml')
+
+
+def replace_logos(xmltv):
+	tree = ET.fromstring(xmltv)
+	for element in tree.iter():
+		if element.tag == 'channel':
+			channel_name = element.find('display-name').text
+			logo_path = 'static/logos/' + channel_name + '.png'
+
+			if os.path.isfile(logo_path):
+				element.find('icon').attrib['src'] = request.url_root + 'logos/' + channel_name + '.png'
+
+	return ET.tostring(tree)
 
 
 if __name__ == '__main__':
