@@ -82,7 +82,7 @@ def add_lcn_element(xmltv):
 
 @app.route('/guide')
 def guide_data():
-	guide._fetch_feed()
+	guide._fetch_epg_data()
 	epg_data = add_lcn_element(guide.epg_data)
 	if app.config['NANOF_LOGOS']: epg_data = replace_logos(epg_data)
 	return Response(epg_data.decode(), mimetype='text/xml')
