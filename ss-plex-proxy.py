@@ -90,7 +90,7 @@ def add_lcn_element(xmltv):
             lcn.text = str(channel_number)
             channel_number += 1
 
-    return ET.tostring(tree)
+    return ET.tostring(tree, xml_declaration=True)
 
 
 @app.route('/guide')
@@ -111,7 +111,7 @@ def replace_logos(xmltv):
             if os.path.isfile(logo_path):
                 element.find('icon').attrib['src'] = request.url_root + 'logos/' + channel_name + '.png'
 
-    return ET.tostring(tree)
+    return ET.tostring(tree, xml_declaration=True)
 
 
 if __name__ == '__main__':
