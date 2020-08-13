@@ -4,8 +4,7 @@ import xml.etree.ElementTree as ET
 
 from flask import Flask, redirect, request, jsonify, Response
 from flask.logging import default_handler
-
-from pysmoothstreams import Server, Quality, Protocol, Service
+from pysmoothstreams import Server, Protocol, Service
 from pysmoothstreams.auth import AuthSign
 from pysmoothstreams.exceptions import InvalidService
 from pysmoothstreams.guide import Guide
@@ -112,6 +111,19 @@ def replace_logos(xmltv):
                 element.find('icon').attrib['src'] = request.url_root + 'logos/' + channel_name + '.png'
 
     return ET.tostring(tree, xml_declaration=True)
+
+
+@app.route('/playlist.m3u')
+def generate_m3u_playlist():
+    m3u = '#EXTM3U\n'
+
+    for channel in guide.channels:
+        clean_channel_name = channel["name"].strip()
+
+        m3u += f'#EXTINF: tvg-id="{channel["id"]}" tvg-name="{clean_channel_name}" tvg-logo="{channel["icon"]}" tvg-chno="{channel["number"]}", {clean_channel_name}\n'
+        m3u += f'{request.url_root}channels/{str(channel["number"])}\n'
+
+    return Response(m3u, mimetype='audio/x-mpegurl')
 
 
 if __name__ == '__main__':
