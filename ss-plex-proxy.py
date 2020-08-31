@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 import xml.etree.ElementTree as ET
@@ -76,6 +77,19 @@ def lineup_status():
     })
 
 
+# We are adding the xml_declaration as some programs (Kodi)
+# require this.
+#
+# ET.tostring() does not support xml_declaration in Python
+# versions < 3.8 so we need to write to a bytes object and
+# return that in order to maintain backwards compatibility.
+def add_xml_declaration(xml):
+    f = io.BytesIO()
+    t = ET.ElementTree(xml)
+    t.write(f, encoding='utf-8', xml_declaration=True)
+    return f.getvalue()
+
+
 # Used to add a 'lcn' subelement to channel elements as Plex does something weird where it concatenates the channel id
 #  and channel name to make the channel number. For fog/altepg this is needed for sane channel numbers.
 # https://forums.plex.tv/t/xmltv-parsing-channel-id-and-display-name/219305/20
@@ -89,7 +103,7 @@ def add_lcn_element(xmltv):
             lcn.text = str(channel_number)
             channel_number += 1
 
-    return ET.tostring(tree, xml_declaration=True)
+    return add_xml_declaration(tree)
 
 
 @app.route('/guide')
@@ -110,7 +124,7 @@ def replace_logos(xmltv):
             if os.path.isfile(logo_path):
                 element.find('icon').attrib['src'] = request.url_root + 'logos/' + channel_name + '.png'
 
-    return ET.tostring(tree, xml_declaration=True)
+    return add_xml_declaration(tree)
 
 
 @app.route('/playlist.m3u')
