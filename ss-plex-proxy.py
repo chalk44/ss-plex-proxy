@@ -77,12 +77,11 @@ def lineup_status():
     })
 
 
-# We are adding the xml_declaration as some programs (Kodi)
-# require this.
+# We are adding the xml_declaration as some programs (Kodi) require this.
 #
-# ET.tostring() does not support xml_declaration in Python
-# versions < 3.8 so we need to write to a bytes object and
-# return that in order to maintain backwards compatibility.
+# ET.tostring() does not support xml_declaration in Python versions < 3.8 so
+# we need to write to a bytes object and return that in order to maintain
+# backwards compatibility.
 def add_xml_declaration(xml):
     f = io.BytesIO()
     t = ET.ElementTree(xml)
@@ -90,8 +89,9 @@ def add_xml_declaration(xml):
     return f.getvalue()
 
 
-# Used to add a 'lcn' subelement to channel elements as Plex does something weird where it concatenates the channel id
-#  and channel name to make the channel number. For fog/altepg this is needed for sane channel numbers.
+# Used to add a 'lcn' subelement to channel elements as Plex does something
+# weird where it concatenates the channel id and channel name to make the
+# channel number. For fog/altepg this is needed for sane channel numbers.
 # https://forums.plex.tv/t/xmltv-parsing-channel-id-and-display-name/219305/20
 def add_lcn_element(xmltv):
     channel_number = 1
@@ -160,6 +160,6 @@ if __name__ == '__main__':
     quality = app.config['QUALITY']
 
     auth_sign = AuthSign(service=service, auth=(username, password))
-    guide = Guide()
+    guide = Guide(feed="https://fast-guide.smoothstreams.tv/altepg/xmltv1.xml.gz")
 
     app.run(host='0.0.0.0', port=5004)
