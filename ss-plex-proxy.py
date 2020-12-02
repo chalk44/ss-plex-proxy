@@ -134,8 +134,8 @@ def generate_m3u_playlist():
     for channel in guide.channels:
         clean_channel_name = channel["name"].strip()
 
-        m3u += f'#EXTINF: tvg-id="{channel["id"]}" tvg-name="{clean_channel_name}" tvg-logo="{channel["icon"]}" tvg-chno="{channel["number"]}", {clean_channel_name}\n'
-        m3u += f'{request.url_root}channels/{str(channel["number"])}\n'
+        m3u += '#EXTINF: tvg-id="{channel_id}" tvg-name="{channel_name}" tvg-logo="{channel_icon}" tvg-chno="{channel_number}", {channel_name}\n'.format(channel_id=channel["id"],channel_name=clean_channel_name,channel_icon=channel["icon"],channel_number=channel["number"])
+        m3u += '{url_root}channels/{channel_number}\n'.format(url_root=request.url_root,channel_number=str(channel["number"]))
 
     return Response(m3u, mimetype='audio/x-mpegurl')
 
@@ -160,6 +160,6 @@ if __name__ == '__main__':
     quality = app.config['QUALITY']
 
     auth_sign = AuthSign(service=service, auth=(username, password))
-    guide = Guide(feed="https://fast-guide.smoothstreams.tv/altepg/xmltv1.xml.gz")
+    guide = Guide(feed="https://fast-guide.smoothstreams.tv/altepg/xmltv3.xml.gz")
 
     app.run(host='0.0.0.0', port=5004)
